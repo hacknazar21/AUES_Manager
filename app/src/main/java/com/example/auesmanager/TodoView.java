@@ -1,10 +1,8 @@
 package com.example.auesmanager;
 
-import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
@@ -36,14 +34,6 @@ public class TodoView extends RecyclerView.Adapter<TodoView.TodoViewHolder> {
     public int getItemCount() {
         return todolist.size();
     }
-    @Override
-    public long getItemId(int position) {
-        return position;
-    }
-    @Override
-    public int getItemViewType(int position) {
-        return position;
-    }
 
     class TodoViewHolder extends RecyclerView.ViewHolder {
         private TextView TextDo;
@@ -69,6 +59,10 @@ public class TodoView extends RecyclerView.Adapter<TodoView.TodoViewHolder> {
             else if (todo.getIsYes().equals("Yes")) YesDo.setChecked(true);
 
         }
+    }
+    public void setItem(TODO items){
+        todolist.add(items);
+        notifyItemChanged(getItemCount() - 1);
     }
     public void setItems(Collection<TODO> items){
         todolist.addAll(items);

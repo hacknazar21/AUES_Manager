@@ -1,15 +1,19 @@
 package com.example.auesmanager;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -34,12 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 public class RaspActivity extends Activity {
-    private TextView Dayl;
-    private TextView Timel;
-    private TextView SubGroup;
-    private TextView Namel;
-    private TextView Sensei;
-    private TextView Rooml;
+    private TextView Dayl, Timel, SubGroup, Namel, Sensei, Rooml;
     private Collection<Rasp> titleList = new ArrayList<>();
     private Collection<TODO> todoList = new ArrayList<>();
     private ArrayList<String> current_titleList = new ArrayList<>();
@@ -73,6 +72,7 @@ public class RaspActivity extends Activity {
         Animation hide_fab_1 = AnimationUtils.loadAnimation(getApplication(), R.anim.fab1_hide);
         fab1 = findViewById(R.id.fab_1);
         fab2 = findViewById(R.id.fab_2);
+
         findViewById(R.id.imageMenu).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -87,7 +87,33 @@ public class RaspActivity extends Activity {
         Sensei = findViewById(R.id.sensei);
         Rooml = findViewById(R.id.rooml);
 
+        fab2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LayoutInflater li = LayoutInflater.from(context);
+                View promptsView = li.inflate(R.layout.add_goal, null);
 
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(context);
+
+                alertDialog.setView(promptsView);
+                final EditText userInputGoal = promptsView.findViewById(R.id.editTextGoal);
+                final EditText userInputTime = promptsView.findViewById(R.id.editTime);
+
+                alertDialog.setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        NewData(userInputGoal.getText().toString(), userInputTime.getText().toString());
+                    }
+                }).setNegativeButton("Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,int id) {
+                                dialog.cancel();
+                            }
+                        });
+                AlertDialog dialog = alertDialog.create();
+                dialog.show();
+            }
+        });
         td = new NewThread().execute("https://aues.arhit.kz/rasp/", "ins", "1");
 
         initTODO();
@@ -167,23 +193,15 @@ public class RaspActivity extends Activity {
         todoRV = findViewById(R.id.ListView2);
         todoRV.setLayoutManager(new LinearLayoutManager(this));
         TDadapter = new TodoView();
-        TDadapter.setHasStableIds(true);
+        TDadapter.setHasStableIds(false);
         TDadapter.setItems(todoList);
         todoRV.setAdapter(TDadapter);
     }
-    private void Data(){
-        todoList.add(new TODO("1", "21:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
-        todoList.add(new TODO("2", "22:12", R.drawable.ic_baseline_assignment, "None"));
+    private void NewData(String textDO, String textTime) {
+        TDadapter.setItem(new TODO(textDO, textTime, R.drawable.ic_baseline_assignment, "None"));
+    }
+    private void Data() {
+        todoList.add(new TODO("Привет, это первый пункт в твоем списке, ты можешь изменить его, либо удалить", "21:12", R.drawable.ic_baseline_assignment, "None"));
     }
     private void initMenu(Spinner spinner_menus, ArrayAdapter<String> arrayAdapter){
         spinner_menus.setAdapter(arrayAdapter);
