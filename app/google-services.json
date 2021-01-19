@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "499161770068",
+    "project_id": "aues-manager",
+    "storage_bucket": "aues-manager.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:499161770068:android:1a1cbce7797bf35bda65c1",
+        "android_client_info": {
+          "package_name": "com.example.auesmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "499161770068-u6um9i41emg45pb4395kg41qrp1k1kt0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDzn7i686RStwIUPVtkzWXYlUHidvpOEkw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "499161770068-u6um9i41emg45pb4395kg41qrp1k1kt0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
