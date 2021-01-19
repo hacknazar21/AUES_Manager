@@ -22,17 +22,17 @@
 
             <ImageView
                 android:id="@+id/imageList"
-                android:layout_width="75dp"
-                android:layout_height="70dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_margin="10dp"
-                android:layout_weight="0
-    "
+                android:layout_weight="1.5"
                 android:contentDescription="@string/app_name"
                 android:src="@drawable/ic_baseline_assignment"
-                app:tint="#515585" />
+                android:tint="#E8B827" />
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="457dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:orientation="vertical">
@@ -42,7 +42,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
-                    android:textSize="12sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/textDate"
@@ -52,28 +52,42 @@
                     android:textSize="8sp" />
             </LinearLayout>
 
-            <RadioGroup
+            <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_height="match_parent"
                 android:layout_weight="0"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <RadioButton
-                    android:id="@+id/nodo"
+                <RadioGroup
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:buttonTint="#D53030"
-                    android:checked="false" />
+                    android:layout_gravity="right"
+                    android:orientation="vertical">
 
-                <RadioButton
-                    android:id="@+id/yesdo"
-                    android:layout_width="wrap_content"
+                    <RadioButton
+                        android:id="@+id/nodo"
+                        android:layout_width="30dp"
+                        android:layout_height="27dp"
+                        android:layout_weight="1"
+                        android:buttonTint="#D53030"
+                        android:checked="false" />
+
+                    <RadioButton
+                        android:id="@+id/yesdo"
+                        android:layout_width="30dp"
+                        android:layout_height="27dp"
+                        android:layout_weight="1"
+                        android:buttonTint="#45C647" />
+                </RadioGroup>
+
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:buttonTint="#45C647" />
-            </RadioGroup>
+                    android:paddingTop="20dp"
+                    android:src="@drawable/ic_baseline_restore_from_trash"
+                    android:tint="#E8B827" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 

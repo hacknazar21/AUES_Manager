@@ -38,8 +38,7 @@
                     android:layout_weight="1"
                     android:contentDescription="@string/app_name"
                     android:src="@drawable/ic_baseline"
-                    app:tint="#892cdc"
-                    android:tintMode="src_in"/>
+                    android:tint="#892cdc"/>
 
                 <TextView
                     android:id="@+id/textView"
@@ -51,7 +50,7 @@
                     android:gravity="center"
                     android:text="@string/aues_manager"
                     android:textAllCaps="false"
-                    android:textColor="#52057b"
+                    android:textColor="#E8B827"
                     android:textSize="24sp" />
 
                 <ImageView
@@ -61,7 +60,7 @@
                     android:layout_weight="1"
                     android:contentDescription="@string/app_name"
                     android:src="@drawable/ic_baseline_search"
-                    app:tint="#892cdc" />
+                    android:tint="#892cdc" />
 
             </LinearLayout>
 
