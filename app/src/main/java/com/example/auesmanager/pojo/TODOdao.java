@@ -14,7 +14,7 @@ public interface TODOdao{
     void insertAll(TODO... todo);
 
     @Delete
-    void delete(TODO... todo);
+    void delete(TODO todo);
 
     @Query("SELECT * FROM todos")
     List<TODO> getAllTodos();

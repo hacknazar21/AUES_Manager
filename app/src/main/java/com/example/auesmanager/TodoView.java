@@ -18,6 +18,11 @@ import java.util.List;
 
 public class TodoView extends RecyclerView.Adapter<TodoView.TodoViewHolder> {
     private List<TODO> todolist = new ArrayList<TODO>();
+    private OnTodoClick onTodoClickListener;
+
+    public TodoView(OnTodoClick onTodoClickListener){
+        this.onTodoClickListener = onTodoClickListener;
+    }
     @NonNull
     @Override
     public TodoView.TodoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -58,14 +63,30 @@ public class TodoView extends RecyclerView.Adapter<TodoView.TodoViewHolder> {
             if (todo.getIsYes().equals("No")) NoDo.setChecked(true);
             else if (todo.getIsYes().equals("Yes")) YesDo.setChecked(true);
 
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    TODO todo = todolist.get(getLayoutPosition());
+                    onTodoClickListener.onTodoClick(todo);
+                }
+            });
         }
     }
     public void setItem(TODO items){
         todolist.add(items);
         notifyItemChanged(getItemCount() - 1);
     }
+    public void delItem(TODO item){
+        todolist.remove(item);
+        notifyDataSetChanged();
+    }
+
     public void setItems(Collection<TODO> items){
         todolist.addAll(items);
         notifyDataSetChanged();
+    }
+
+    public interface OnTodoClick{
+        void onTodoClick(TODO todo);
     }
 }

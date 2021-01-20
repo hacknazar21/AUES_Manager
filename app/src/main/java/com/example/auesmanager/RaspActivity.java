@@ -228,16 +228,49 @@ public class RaspActivity extends Activity {
         raspsRV.setAdapter(adapter);
     }
     private void initTODO(){
+        TodoView.OnTodoClick onTodoClick = new TodoView.OnTodoClick() {
+            @Override
+            public void onTodoClick(TODO todo) {
+                findViewById(R.id.deleteView).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Observable.fromCallable(new DelDataFromDB(todo))
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Consumer<Void>() {
+                                               @Override
+                                               public void accept(Void aVoid) throws Exception {
+
+                                               }
+                                           },
+                                        new Consumer<Throwable>() {
+                                            @Override
+                                            public void accept(Throwable throwable) throws Exception {
+                                                Log.d("MyTag", "OnErrorDel - " + throwable);
+                                            }
+                                        });
+                        if(todoList.remove(todo))
+                            Log.d("MyTag", "Successful");;
+                        TDadapter.delItem(todo);
+                    }
+                });
+
+            }
+        };
         Data();
         todoRV = findViewById(R.id.ListView2);
         todoRV.setLayoutManager(new LinearLayoutManager(this));
-        TDadapter = new TodoView();
+        TDadapter = new TodoView(onTodoClick);
         TDadapter.setHasStableIds(false);
         TDadapter.setItems(todoList);
         todoRV.setAdapter(TDadapter);
     }
     private void NewData(String textDO, String textTime) {
         db.getTODODao().insertAll(new TODO(textDO, textTime, R.drawable.ic_baseline_assignment, "None"));
+
+    }
+    private void DelData(TODO todo) {
+        db.getTODODao().delete(todo);
 
     }
     @SuppressLint("CheckResult")
@@ -312,6 +345,18 @@ public class RaspActivity extends Activity {
         @Override
         public List<TODO> call() throws Exception {
             return db.getTODODao().getAllTodos();
+        }
+    }
+    class DelDataFromDB implements Callable<Void> {
+        private final TODO todo;
+
+        public DelDataFromDB(TODO todo) {
+            this.todo = todo;
+        }
+        @Override
+        public Void call() throws Exception {
+            DelData(todo);
+            return null;
         }
     }
     class SetDataToDB implements Callable<Void> {
