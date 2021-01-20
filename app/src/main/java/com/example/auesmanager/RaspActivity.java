@@ -1,5 +1,6 @@
 package com.example.auesmanager;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -15,6 +16,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -23,6 +26,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import com.example.auesmanager.pojo.Rasp;
 import com.example.auesmanager.pojo.TODO;
@@ -36,6 +40,13 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.Callable;
+
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class RaspActivity extends Activity {
     private TextView Dayl, Timel, SubGroup, Namel, Sensei, Rooml;
@@ -58,11 +69,18 @@ public class RaspActivity extends Activity {
     private Context context = this;
     private String href_exam = "";
 
+    private ProgressBar loading;
+    private LinearLayout.LayoutParams layoutParams;
+
+    private AppDatabase db;
+
     AsyncTask<String, Integer, Integer> td;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "popus-database").build();
+
         setContentView(R.layout.activity_rasp_info);
         DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
         btnFloating = findViewById(R.id.fab_add);
@@ -72,6 +90,10 @@ public class RaspActivity extends Activity {
         Animation hide_fab_1 = AnimationUtils.loadAnimation(getApplication(), R.anim.fab1_hide);
         fab1 = findViewById(R.id.fab_1);
         fab2 = findViewById(R.id.fab_2);
+
+        loading = findViewById(R.id.progressBar);
+
+
 
         findViewById(R.id.imageMenu).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -100,9 +122,25 @@ public class RaspActivity extends Activity {
                 final EditText userInputTime = promptsView.findViewById(R.id.editTime);
 
                 alertDialog.setCancelable(false).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @SuppressLint("CheckResult")
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        NewData(userInputGoal.getText().toString(), userInputTime.getText().toString());
+                        TDadapter.setItem(new TODO(userInputGoal.getText().toString(), userInputTime.getText().toString(), R.drawable.ic_baseline_assignment, "None"));
+                        Observable.fromCallable(new SetDataToDB(userInputGoal.getText().toString(), userInputTime.getText().toString()))
+                                .subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(new Consumer<Void>() {
+                                               @Override
+                                               public void accept(Void aVoid) throws Exception {
+
+                                               }
+                                           },
+                                        new Consumer<Throwable>() {
+                                            @Override
+                                            public void accept(Throwable throwable) throws Exception {
+                                                Log.d("MyTag", "OnErrorSet - " + throwable);
+                                            }
+                                        });
                     }
                 }).setNegativeButton("Cancel",
                         new DialogInterface.OnClickListener() {
@@ -171,6 +209,7 @@ public class RaspActivity extends Activity {
                 }
             }
         });
+
     }
 
     private void initRV() {
@@ -198,12 +237,32 @@ public class RaspActivity extends Activity {
         todoRV.setAdapter(TDadapter);
     }
     private void NewData(String textDO, String textTime) {
-        TDadapter.setItem(new TODO(textDO, textTime, R.drawable.ic_baseline_assignment, "None"));
+        db.getTODODao().insertAll(new TODO(textDO, textTime, R.drawable.ic_baseline_assignment, "None"));
+
     }
+    @SuppressLint("CheckResult")
     private void Data() {
-        todoList.add(new TODO("Привет, это первый пункт в твоем списке, ты можешь изменить его, либо удалить", "21:12", R.drawable.ic_baseline_assignment, "None"));
+        Observable.fromCallable(new GetDataFromDB())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List>() {
+                               @Override
+                               public void accept(List list) throws Exception {
+                                   if (!list.isEmpty())
+                                       todoList.addAll(list);
+                                   TDadapter.setItems(todoList);
+                               }
+                           },
+                        new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                Log.d("MyTag", "OnErrorGet - " + throwable);
+                            }
+                        });
     }
     private void initMenu(Spinner spinner_menus, ArrayAdapter<String> arrayAdapter){
+        layoutParams = new LinearLayout.LayoutParams(0, 0);
+        loading.setLayoutParams(layoutParams);
         spinner_menus.setAdapter(arrayAdapter);
 
         AdapterView.OnItemSelectedListener itemSelectedListener = new AdapterView.OnItemSelectedListener() {
@@ -249,44 +308,67 @@ public class RaspActivity extends Activity {
         spinner_menus.setOnItemSelectedListener(itemSelectedListener);
 
     }
-    public class NewThread extends AsyncTask<String, Integer, Integer> {
+    class GetDataFromDB implements Callable<List> {
+        @Override
+        public List<TODO> call() throws Exception {
+            return db.getTODODao().getAllTodos();
+        }
+    }
+    class SetDataToDB implements Callable<Void> {
+        private final String textDO;
+        private final String textTime;
+
+        public SetDataToDB(String textDO, String textTime) {
+            this.textDO = textDO;
+            this.textTime = textTime;
+        }
+        @Override
+        public Void call() throws Exception {
+            NewData(textDO, textTime);
+            return null;
+        }
+    }
+
+        public class NewThread extends AsyncTask<String, Integer, Integer> {
         @Override
         protected Integer doInBackground(String... arg) {
             String buffer = "Понедельник";
             current_titleList.clear();
             menuList2.clear();
             titleList.clear();
-            int num = Integer.parseInt(arg[2]);
-            try {
-                if (num == 0) {
-                    doc = Jsoup.connect(arg[0]).get();
-                    content = doc.select(arg[1]);
-                }
-                else if (num == 1) {
-                    doc_menu = Jsoup.connect(arg[0]).get();
-                    content = doc_menu.select(arg[1]);
-                }
-                else {
-                    doc = Jsoup.connect(arg[0]).get();
-                    content = doc.select(arg[1]);
-                }
-
-                for (Element contents : content) {
-                    current_titleList.add(contents.text());
-                }
-                if (num == 0) {
-                    for (int i = 0; i < current_titleList.size(); i += 6) {
-                        if (!current_titleList.get(i).equals("")) {
-                            titleList.add(new Rasp(current_titleList.get(i), current_titleList.get(i + 1), current_titleList.get(i + 2), current_titleList.get(i + 3), current_titleList.get(i + 4), current_titleList.get(i + 5)));
-                            buffer = current_titleList.get(i);
-                        } else
-                            titleList.add(new Rasp(buffer, current_titleList.get(i + 1), current_titleList.get(i + 2), current_titleList.get(i + 3), current_titleList.get(i + 4), current_titleList.get(i + 5)));
+            int num;
+            do {
+                num = Integer.parseInt(arg[2]);
+                try {
+                        if (num == 0) {
+                            doc = Jsoup.connect(arg[0]).get();
+                            content = doc.select(arg[1]);
+                        } else if (num == 1) {
+                            doc_menu = Jsoup.connect(arg[0]).get();
+                            content = doc_menu.select(arg[1]);
+                        } else {
+                            doc = Jsoup.connect(arg[0]).get();
+                            content = doc.select(arg[1]);
+                        }
+                    for (Element contents : content) {
+                        current_titleList.add(contents.text());
                     }
+                    if (num == 0) {
+                        for (int i = 0; i < current_titleList.size(); i += 6) {
+                            if (!current_titleList.get(i).equals("")) {
+                                titleList.add(new Rasp(current_titleList.get(i), current_titleList.get(i + 1), current_titleList.get(i + 2), current_titleList.get(i + 3), current_titleList.get(i + 4), current_titleList.get(i + 5)));
+                                buffer = current_titleList.get(i);
+                            } else
+                                titleList.add(new Rasp(buffer, current_titleList.get(i + 1), current_titleList.get(i + 2), current_titleList.get(i + 3), current_titleList.get(i + 4), current_titleList.get(i + 5)));
+                        }
+                    }
+                    current_titleList.add(0, "--Выберите--");
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    num = -1;
                 }
-                current_titleList.add(0, "--Выберите--");
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            } while (num == -1);
             return num;
         }
 
