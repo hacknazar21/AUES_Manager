@@ -15,7 +15,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#000000"
+            android:background="#363636"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
@@ -27,7 +27,7 @@
                 android:id="@+id/linearLayout2"
                 android:layout_width="match_parent"
                 android:layout_height="55dp"
-                android:background="#000000"
+                android:background="#a8a7a8"
                 android:divider="@color/purple_500"
                 android:orientation="horizontal">
 
@@ -38,7 +38,7 @@
                     android:layout_weight="1"
                     android:contentDescription="@string/app_name"
                     android:src="@drawable/ic_baseline"
-                    android:tint="#892cdc"/>
+                    android:tint="#a8a7a8" />
 
                 <TextView
                     android:id="@+id/textView"
@@ -50,7 +50,7 @@
                     android:gravity="center"
                     android:text="@string/aues_manager"
                     android:textAllCaps="false"
-                    android:textColor="#E8B827"
+                    android:textColor="#474747"
                     android:textSize="24sp" />
 
                 <ImageView
@@ -60,7 +60,7 @@
                     android:layout_weight="1"
                     android:contentDescription="@string/app_name"
                     android:src="@drawable/ic_baseline_search"
-                    android:tint="#892cdc" />
+                    android:tint="#a8a7a8" />
 
             </LinearLayout>
 
@@ -99,9 +99,10 @@
                     android:layout_gravity="bottom|end"
                     android:layout_margin="10dp"
                     android:src="@drawable/ic_baseline_add"
-                    app:backgroundTint="#151965"
+                    app:backgroundTint="#e8175d"
                     app:layout_behavior="com.example.auesmanager.FAB_Hide_on_Scroll"
                     app:maxImageSize="25dp" />
+
                 <include layout="@layout/fab_layout" />
             </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

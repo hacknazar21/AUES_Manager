@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:addStatesFromChildren="false"
-        android:background="@drawable/todoback"
+        android:background="#a8a7a8"
         android:orientation="vertical"
         android:showDividers="none">
 
