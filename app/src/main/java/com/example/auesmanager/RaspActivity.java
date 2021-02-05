@@ -26,8 +26,9 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
+import com.example.auesmanager.DB.RaspDB;
+import com.example.auesmanager.DB.TodoDB;
 import com.example.auesmanager.pojo.Rasp;
 import com.example.auesmanager.pojo.TODO;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -41,7 +42,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 import io.reactivex.Observable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -72,15 +72,16 @@ public class RaspActivity extends Activity {
     private ProgressBar loading;
     private LinearLayout.LayoutParams layoutParams;
 
-    private AppDatabase db;
+
 
     AsyncTask<String, Integer, Integer> td;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "popus-database").build();
 
+        TodoDB.TodoDBInit(context);
+        RaspDB.RaspDBInit(context);
         setContentView(R.layout.activity_rasp_info);
         DrawerLayout drawerLayout = findViewById(R.id.drawerLayout);
         btnFloating = findViewById(R.id.fab_add);
@@ -126,7 +127,7 @@ public class RaspActivity extends Activity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         TDadapter.setItem(new TODO(userInputGoal.getText().toString(), userInputTime.getText().toString(), R.drawable.ic_baseline_assignment, "None"));
-                        Observable.fromCallable(new SetDataToDB(userInputGoal.getText().toString(), userInputTime.getText().toString()))
+                        Observable.fromCallable(new TodoDB.SetDataToDB(userInputGoal.getText().toString(), userInputTime.getText().toString()))
                                 .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Consumer<Void>() {
@@ -234,7 +235,7 @@ public class RaspActivity extends Activity {
                 findViewById(R.id.deleteView).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Observable.fromCallable(new DelDataFromDB(todo))
+                        Observable.fromCallable(new TodoDB.DelDataFromDB(todo))
                                 .subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
                                 .subscribe(new Consumer<Void>() {
@@ -265,17 +266,12 @@ public class RaspActivity extends Activity {
         TDadapter.setItems(todoList);
         todoRV.setAdapter(TDadapter);
     }
-    private void NewData(String textDO, String textTime) {
-        db.getTODODao().insertAll(new TODO(textDO, textTime, R.drawable.ic_baseline_assignment, "None"));
 
-    }
-    private void DelData(TODO todo) {
-        db.getTODODao().delete(todo);
 
-    }
+
     @SuppressLint("CheckResult")
     private void Data() {
-        Observable.fromCallable(new GetDataFromDB())
+        Observable.fromCallable(new TodoDB.GetDataFromDB())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<List>() {
@@ -290,6 +286,23 @@ public class RaspActivity extends Activity {
                             @Override
                             public void accept(Throwable throwable) throws Exception {
                                 Log.d("MyTag", "OnErrorGet - " + throwable);
+                            }
+                        });
+        Observable.fromCallable(new RaspDB.GetDataRaspFromDB())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Consumer<List>() {
+                               @Override
+                               public void accept(List list) throws Exception {
+                                   if (!list.isEmpty())
+                                       titleList.addAll(list);
+                                   adapter.setItems(titleList);
+                               }
+                           },
+                        new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable throwable) throws Exception {
+                                Log.d("MyTag", "OnErrorGetRasps - " + throwable);
                             }
                         });
     }
@@ -326,7 +339,7 @@ public class RaspActivity extends Activity {
                         }
                     }
                     if (!href.equals("") && href_exam.equals("")){
-                        td = new NewThread().execute("https://aues.arhit.kz/rasp/scheduleNew.php?sg="  + href + "&schedule=21", "td", "0");
+                        td = new NewThread().execute("https://aues.arhit.kz/rasp/scheduleNew.php?sg="  + href + "&schedule=29", "td", "0");
                         Log.d("MyTag", href);
                     }
                     else if(!href.equals("") && !(href_exam.equals(""))) td = new NewThread().execute("https://aues.arhit.kz/rasp/" + href_exam + href, "tbody>tr>th,td", "0");
@@ -341,38 +354,8 @@ public class RaspActivity extends Activity {
         spinner_menus.setOnItemSelectedListener(itemSelectedListener);
 
     }
-    class GetDataFromDB implements Callable<List> {
-        @Override
-        public List<TODO> call() throws Exception {
-            return db.getTODODao().getAllTodos();
-        }
-    }
-    class DelDataFromDB implements Callable<Void> {
-        private final TODO todo;
 
-        public DelDataFromDB(TODO todo) {
-            this.todo = todo;
-        }
-        @Override
-        public Void call() throws Exception {
-            DelData(todo);
-            return null;
-        }
-    }
-    class SetDataToDB implements Callable<Void> {
-        private final String textDO;
-        private final String textTime;
 
-        public SetDataToDB(String textDO, String textTime) {
-            this.textDO = textDO;
-            this.textTime = textTime;
-        }
-        @Override
-        public Void call() throws Exception {
-            NewData(textDO, textTime);
-            return null;
-        }
-    }
 
         public class NewThread extends AsyncTask<String, Integer, Integer> {
         @Override
@@ -401,10 +384,41 @@ public class RaspActivity extends Activity {
                     if (num == 0) {
                         for (int i = 0; i < current_titleList.size(); i += 6) {
                             if (!current_titleList.get(i).equals("")) {
+                                Observable.fromCallable(new RaspDB.SetDataRaspToDB(current_titleList.get(i), current_titleList.get(i + 1), current_titleList.get(i + 2), current_titleList.get(i + 3), current_titleList.get(i + 4), current_titleList.get(i + 5)))
+                                        .subscribeOn(Schedulers.io())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(new Consumer<Void>() {
+                                                       @Override
+                                                       public void accept(Void aVoid) throws Exception {
+
+                                                       }
+                                                   },
+                                                new Consumer<Throwable>() {
+                                                    @Override
+                                                    public void accept(Throwable throwable) throws Exception {
+                                                        Log.d("MyTag", "OnErrorSetRasp - " + throwable);
+                                                    }
+                                                });
                                 titleList.add(new Rasp(current_titleList.get(i), current_titleList.get(i + 1), current_titleList.get(i + 2), current_titleList.get(i + 3), current_titleList.get(i + 4), current_titleList.get(i + 5)));
                                 buffer = current_titleList.get(i);
-                            } else
+                            } else {
+                                Observable.fromCallable(new RaspDB.SetDataRaspToDB(buffer, current_titleList.get(i + 1), current_titleList.get(i + 2), current_titleList.get(i + 3), current_titleList.get(i + 4), current_titleList.get(i + 5)))
+                                        .subscribeOn(Schedulers.io())
+                                        .observeOn(AndroidSchedulers.mainThread())
+                                        .subscribe(new Consumer<Void>() {
+                                                       @Override
+                                                       public void accept(Void aVoid) throws Exception {
+
+                                                       }
+                                                   },
+                                                new Consumer<Throwable>() {
+                                                    @Override
+                                                    public void accept(Throwable throwable) throws Exception {
+                                                        Log.d("MyTag", "OnErrorSet - " + throwable);
+                                                    }
+                                                });
                                 titleList.add(new Rasp(buffer, current_titleList.get(i + 1), current_titleList.get(i + 2), current_titleList.get(i + 3), current_titleList.get(i + 4), current_titleList.get(i + 5)));
+                            }
                         }
                     }
                     current_titleList.add(0, "--Выберите--");
@@ -438,11 +452,25 @@ public class RaspActivity extends Activity {
                 case 2:
                     menuList2.addAll(current_titleList);
                     arrayAdapter2 = new ArrayAdapter<String>(context, android.R.layout.simple_spinner_dropdown_item, menuList2);
+                    Observable.fromCallable(new RaspDB.DelDataRaspFromDB(titleList))
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(new Consumer<Void>() {
+                                           @Override
+                                           public void accept(Void aVoid) throws Exception {
+
+                                           }
+                                       },
+                                    new Consumer<Throwable>() {
+                                        @Override
+                                        public void accept(Throwable throwable) throws Exception {
+                                            Log.d("MyTag", "OnErrorDelRasp - " + throwable);
+                                        }
+                                    });
                     initMenu(spinner_menu2, arrayAdapter2);
                     spinner_menu2.setVisibility(View.VISIBLE);
                     break;
             }
-
         }
     }
 }
